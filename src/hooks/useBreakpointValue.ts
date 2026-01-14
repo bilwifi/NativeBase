@@ -5,11 +5,9 @@ import {
   findLastValidBreakpoint,
 } from '../theme/tools';
 import { useTheme } from './../hooks/useTheme';
-import type { ITheme } from '../theme/index';
+import type { ResponsiveValue } from '../components/types/responsiveValue';
 
-type UseBreakpointValueParam =
-  | { [key in keyof ITheme['breakpoints']]?: any }
-  | Array<any>;
+type UseBreakpointValueParam = ResponsiveValue<any>;
 
 export function useBreakpointValue(values: UseBreakpointValueParam) {
   let windowWidth = useWindowDimensions()?.width;

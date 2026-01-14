@@ -10,32 +10,30 @@ const supplyPropsToChildren = (children: any, props: any) => {
     const result = [];
     const firstChild = children[0];
     const firstChildProps = {
-      ...firstChild.props.children,
+      ...props,
+      ...firstChild.props,
       borderTopRightRadius: 0,
       borderBottomRightRadius: 0,
     };
-    result.push(
-      React.cloneElement(firstChild, firstChildProps, firstChild.props.children)
-    );
+    result.push(React.cloneElement(firstChild, firstChildProps));
     for (let i = 1; i < children.length - 1; i++) {
       const child = children[i];
-      const newProps = { ...props, borderRadius: '0' };
-      result.push(React.cloneElement(child, newProps, child.props.children));
+      const newProps = { ...props, ...child.props, borderRadius: '0' };
+      result.push(React.cloneElement(child, newProps));
     }
     const lastChild = children[children.length - 1];
     const lastChildProps = {
-      ...lastChild.props.children,
+      ...props,
+      ...lastChild.props,
       borderTopLeftRadius: 0,
       borderBottomLeftRadius: 0,
     };
-    result.push(
-      React.cloneElement(lastChild, lastChildProps, lastChild.props.children)
-    );
+    result.push(React.cloneElement(lastChild, lastChildProps));
     return result;
   }
 
   return React.Children.map(children, (child: JSX.Element) => {
-    return React.cloneElement(child, props, child.props.children);
+    return React.cloneElement(child, { ...props, ...child.props });
   });
 };
 
