@@ -1,6 +1,7 @@
 import React, { memo, forwardRef } from 'react';
 import type { IInputProps } from './types';
 import { TextInput, StyleSheet, View } from 'react-native';
+import type { TextStyle } from 'react-native';
 import {
   useTheme,
   useBreakpointValue,
@@ -8,6 +9,7 @@ import {
   useToken,
 } from '../../../hooks';
 import { useColorMode } from '../../../core/color-mode';
+import { useResolvedFontFamily } from '../../../hooks/useResolvedFontFamily';
 
 // Helper pour convertir les valeurs éventuellement en string vers number si possible
 const normalize = (val: any) => {
@@ -20,10 +22,7 @@ const normalize = (val: any) => {
   return Number.isFinite(n) ? n : val;
 };
 
-const resolveScaleValue = (
-  value: any,
-  scale?: Record<string, any>
-) => {
+const resolveScaleValue = (value: any, scale?: Record<string, any>) => {
   if (value == null) return undefined;
   if (
     typeof value === 'string' &&
@@ -35,42 +34,40 @@ const resolveScaleValue = (
   return value;
 };
 
-const resolveNumericValue = (
-  value: any,
-  scale?: Record<string, any>
-) => {
+const resolveNumericValue = (value: any, scale?: Record<string, any>) => {
   return normalize(resolveScaleValue(value, scale));
 };
 
 // Input basé sur TextInput RN, mais conserve les éléments gauche/droite et le theming clair/sombre.
 const Input = (
   {
-  InputLeftElement,
-  InputRightElement,
-  leftElement,
-  rightElement,
-  isDisabled,
-  isReadOnly,
-  isInvalid,
-  style,
-  placeholderTextColor,
-  selectionColor,
-  multiline,
-  width,
-  w,
-  h,
-  borderRadius,
-  borderWidth,
-  borderColor,
-  px,
-  py,
-  fontSize,
-  fontFamily,
-  fontWeight,
-  fontStyle,
-  color,
-  ...rest
-}: IInputProps,
+    InputLeftElement,
+    InputRightElement,
+    leftElement,
+    rightElement,
+    isDisabled,
+    isReadOnly,
+    isInvalid,
+    style,
+    placeholderTextColor,
+    selectionColor,
+    multiline,
+    width,
+    w,
+    h,
+    borderRadius,
+    borderWidth,
+    borderColor,
+    px,
+    py,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    fontStyle,
+    textAlign,
+    color,
+    ...rest
+  }: IInputProps,
   ref: any
 ) => {
   const theme = useTheme?.() || {};
@@ -102,6 +99,7 @@ const Input = (
       fontFamily,
       fontWeight,
       fontStyle,
+      textAlign,
       color,
       ...rest,
     },
@@ -111,6 +109,36 @@ const Input = (
       isInvalid,
     }
   );
+
+  const nativeFont = useResolvedFontFamily({
+    fontFamily: useBreakpointValue(resolvedProps.fontFamily ?? fontFamily),
+    fontWeight:
+      useBreakpointValue(resolvedProps.fontWeight ?? fontWeight) ?? 400,
+    fontStyle:
+      useBreakpointValue(resolvedProps.fontStyle ?? fontStyle) ?? 'normal',
+  });
+  const weightToken = useToken(
+    'fontWeights',
+    nativeFont.fontWeight ?? '',
+    nativeFont.fontWeight ?? ''
+  );
+  const nativeWeight = String(weightToken);
+  const nativeTextAlign = useBreakpointValue(
+    resolvedProps.textAlign ?? textAlign
+  );
+  const validWeights = [
+    'normal',
+    'bold',
+    '100',
+    '200',
+    '300',
+    '400',
+    '500',
+    '600',
+    '700',
+    '800',
+    '900',
+  ];
 
   const colorConfig =
     colorMode === 'dark'
@@ -152,27 +180,23 @@ const Input = (
     theme.space
   );
   const paddingLeftValue = resolveNumericValue(
-    useBreakpointValue(
-      resolvedProps.paddingLeft ?? resolvedProps.pl ?? px
-    ) ?? paddingHorizontalValue,
+    useBreakpointValue(resolvedProps.paddingLeft ?? resolvedProps.pl ?? px) ??
+      paddingHorizontalValue,
     theme.space
   );
   const paddingRightValue = resolveNumericValue(
-    useBreakpointValue(
-      resolvedProps.paddingRight ?? resolvedProps.pr ?? px
-    ) ?? paddingHorizontalValue,
+    useBreakpointValue(resolvedProps.paddingRight ?? resolvedProps.pr ?? px) ??
+      paddingHorizontalValue,
     theme.space
   );
   const paddingTopValue = resolveNumericValue(
-    useBreakpointValue(
-      resolvedProps.paddingTop ?? resolvedProps.pt ?? py
-    ) ?? paddingVerticalValue,
+    useBreakpointValue(resolvedProps.paddingTop ?? resolvedProps.pt ?? py) ??
+      paddingVerticalValue,
     theme.space
   );
   const paddingBottomValue = resolveNumericValue(
-    useBreakpointValue(
-      resolvedProps.paddingBottom ?? resolvedProps.pb ?? py
-    ) ?? paddingVerticalValue,
+    useBreakpointValue(resolvedProps.paddingBottom ?? resolvedProps.pb ?? py) ??
+      paddingVerticalValue,
     theme.space
   );
   const fontSizeValue = resolveNumericValue(
@@ -262,14 +286,22 @@ const Input = (
     style,
   ]);
 
-  const textStyle = StyleSheet.flatten([
+  const textStyle = StyleSheet.flatten<TextStyle>([
     styles.textInput,
     {
       color: textColor,
       fontSize: fontSizeValue != null ? fontSizeValue : 16,
-      fontFamily: fontFamily || undefined,
-      fontWeight: fontWeight || undefined,
-      fontStyle: fontStyle || undefined,
+      fontFamily:
+        typeof nativeFont.fontFamily === 'string'
+          ? nativeFont.fontFamily
+          : undefined,
+      fontWeight: validWeights.includes(nativeWeight)
+        ? (nativeWeight as TextStyle['fontWeight'])
+        : undefined,
+      fontStyle:
+        nativeFont.fontStyle === 'normal' || nativeFont.fontStyle === 'italic'
+          ? nativeFont.fontStyle
+          : undefined,
       paddingLeft: effectivePaddingLeft,
       paddingRight: effectivePaddingRight,
       paddingTop: effectivePaddingTop,
@@ -288,6 +320,13 @@ const Input = (
         placeholderTextColor={placeholderColor}
         selectionColor={resolvedSelectionColor}
         multiline={multiline}
+        textAlign={
+          nativeTextAlign === 'left' ||
+          nativeTextAlign === 'right' ||
+          nativeTextAlign === 'center'
+            ? nativeTextAlign
+            : undefined
+        }
         {...rest}
       />
       {InputRightElement || rightElement}

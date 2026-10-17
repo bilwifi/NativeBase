@@ -23,7 +23,11 @@
     "bootstrap": "yarn example && yarn && yarn pods",
     "build:web": "rollup --config",
     "bundle:analysis": "visualize-bundle",
-    "commit-test": "yarn prepare && cd example && yarn test && cd .."
+    "commit-test": "yarn prepare && cd example && yarn test && cd ..",
+    "test:security": "node --test scripts/theme-properties-security.test.cjs scripts/input-typography.test.cjs",
+    "build:library": "bob build",
+    "release:securityrc": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\"",
+    "release:securityrc:check": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\" --dry-run --ci"
   },
   "lint-staged": {
     "src/**/*.{js,ts,tsx}": [
@@ -53,6 +57,7 @@
     "@testing-library/react-hooks": "^5.0.3",
     "@testing-library/react-native": "^7.1.0",
     "@types/jest": "^26.0.0",
+    "@types/lodash": "4.14.168",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.has": "^4.5.6",
@@ -63,7 +68,6 @@
     "@types/lodash.mergewith": "^4.6.6",
     "@types/lodash.omit": "^4.5.6",
     "@types/lodash.omitby": "^4.6.6",
-    "@types/lodash.pick": "^4.4.6",
     "@types/lodash.uniqueid": "^4.0.7",
     "@types/react": "^16.9.19",
     "@types/react-native": "~0.63.2",
@@ -168,10 +172,16 @@
     "output": "lib",
     "targets": [
       [
-        "commonjs"
+        "commonjs",
+        {
+          "configFile": "./scripts/babel-library-commonjs.cjs"
+        }
       ],
       [
-        "module"
+        "module",
+        {
+          "configFile": "./scripts/babel-library-module.cjs"
+        }
       ],
       "typescript"
     ]
@@ -197,6 +207,7 @@
     "@react-stately/tabs": "3.0.0-alpha.1",
     "@react-stately/toggle": "3.2.1",
     "inline-style-prefixer": "^6.0.1",
+    "lodash": "^4.18.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
@@ -207,7 +218,6 @@
     "lodash.mergewith": "^4.6.2",
     "lodash.omit": "^4.5.0",
     "lodash.omitby": "^4.6.0",
-    "lodash.pick": "^4.4.0",
     "lodash.uniqueid": "^4.0.1",
     "stable-hash": "^0.0.2",
     "tinycolor2": "^1.4.2",
@@ -218,11 +228,11 @@
     "lib": "lib"
   },
   "gitHead": "5bbeacc403ba97622703699132c55d8359344004",
-  "homepage": "https://github.com/GeekyAnts/NativeBase#readme",
+  "homepage": "https://github.com/bilwifi/NativeBase#readme",
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GeekyAnts/NativeBase.git"
+    "url": "git+https://github.com/bilwifi/NativeBase.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
