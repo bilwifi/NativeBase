@@ -25,7 +25,9 @@
     "bundle:analysis": "visualize-bundle",
     "commit-test": "yarn prepare && cd example && yarn test && cd ..",
     "test:security": "node --test scripts/theme-properties-security.test.cjs scripts/input-typography.test.cjs",
-    "build:library": "bob build"
+    "build:library": "bob build",
+    "release:securityrc": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\"",
+    "release:securityrc:check": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\" --dry-run --ci"
   },
   "lint-staged": {
     "src/**/*.{js,ts,tsx}": [
@@ -226,11 +228,11 @@
     "lib": "lib"
   },
   "gitHead": "5bbeacc403ba97622703699132c55d8359344004",
-  "homepage": "https://github.com/GeekyAnts/NativeBase#readme",
+  "homepage": "https://github.com/bilwifi/NativeBase#readme",
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GeekyAnts/NativeBase.git"
+    "url": "git+https://github.com/bilwifi/NativeBase.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
