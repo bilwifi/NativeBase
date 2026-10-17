@@ -1,0 +1,97 @@
+name: Manual security candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact reviewed master commit (40 hexadecimal characters)
+        required: true
+        type: string
+      publish:
+        description: Publish the qualified candidate under security-rc
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nativebase-security-candidate
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    if: github.repository == 'bilwifi/NativeBase' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      latest: ${{ steps.plan.outputs.latest }}
+    env:
+      NPM_TOKEN: ${{ github.token }}
+      NODE_AUTH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@bilwifi'
+      - run: corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --frozen-lockfile --ignore-scripts --ignore-engines --non-interactive
+      - run: yarn test:security
+      - run: yarn build:library
+      - id: plan
+        name: Validate exact source and release-it simulation
+        run: node scripts/security-candidate.cjs plan
+
+  publish:
+    needs: qualify
+    if: inputs.publish && github.repository == 'bilwifi/NativeBase' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
+    env:
+      NPM_TOKEN: ${{ github.token }}
+      NODE_AUTH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      EXPECTED_VERSION: ${{ needs.qualify.outputs.version }}
+      EXPECTED_LATEST: ${{ needs.qualify.outputs.latest }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@bilwifi'
+      - run: corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --frozen-lockfile --ignore-scripts --ignore-engines --non-interactive
+      - run: yarn build:library
+      - name: Authenticate Git with the job-scoped token
+        run: |
+          gh auth setup-git
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Recheck source and candidate immediately before publication
+        run: node scripts/security-candidate.cjs plan
+      - name: Publish through the existing release-it recipe
+        run: yarn release:securityrc --ci
+      - name: Verify registry tags, source commit and GitHub prerelease
+        run: node scripts/security-candidate.cjs verify
