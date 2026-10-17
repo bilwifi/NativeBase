@@ -24,7 +24,7 @@
     "build:web": "rollup --config",
     "bundle:analysis": "visualize-bundle",
     "commit-test": "yarn prepare && cd example && yarn test && cd ..",
-    "test:security": "node --test scripts/theme-properties-security.test.cjs",
+    "test:security": "node --test scripts/theme-properties-security.test.cjs scripts/input-typography.test.cjs",
     "build:library": "bob build"
   },
   "lint-staged": {

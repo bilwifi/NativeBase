@@ -1,0 +1,42 @@
+name: Library security and build
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: library-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # The publish-only .npmrc expects this variable. Public test dependencies
+      # need no GitHub Packages credential; this job cannot publish the library.
+      NPM_TOKEN: public-read-placeholder
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Use the locked Yarn version
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install locked dependencies without lifecycle hooks
+        run: yarn install --frozen-lockfile --ignore-scripts --ignore-engines --non-interactive
+      - name: Run security and native typography regression tests
+        run: yarn test:security
+      - name: Build CommonJS, ES modules and declarations
+        run: yarn build:library
+      - name: Verify source and lockfile remain unchanged
+        run: |
+          git diff --check
+          git diff --exit-code -- package.json yarn.lock
