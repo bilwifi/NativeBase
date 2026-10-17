@@ -1,8 +1,10 @@
-import omitBy from 'lodash.omitby';
-import isNil from 'lodash.isnil';
-import pick from 'lodash.pick';
-import omit from 'lodash.omit';
-import get from 'lodash.get';
+import omitBy from 'lodash/omitBy';
+import isNil from 'lodash/isNil';
+import {
+  pickProperties as pick,
+  omitProperties as omit,
+} from '../../utils/shallowProperties';
+import get from 'lodash/get';
 import type { ITheme } from '../index';
 import { Platform } from 'react-native';
 
@@ -124,13 +126,10 @@ export function getRandomString(length: number) {
 }
 // Inefficient way for pick, but retains order of props.
 function orderedPick(obj: any, values: any) {
-  const ret: any = {};
-  Object.keys(obj).forEach((key: string) => {
-    if (values.includes(key)) {
-      ret[key] = obj[key];
-    }
-  });
-  return ret;
+  return pick(
+    obj,
+    Object.keys(obj).filter((key) => values.includes(key))
+  );
 }
 export function orderedExtractInObject(parent: any, values: Array<string>) {
   return [
