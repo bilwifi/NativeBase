@@ -7,6 +7,15 @@ const {
   validateContext,
 } = require('./security-candidate.cjs');
 
+test('source manifest lets npm derive provenance from the current release commit', () => {
+  const pkg = require('../package.json');
+  assert.equal(pkg.gitHead, undefined);
+  assert.equal(
+    pkg.repository.url,
+    'git+https://github.com/bilwifi/NativeBase.git'
+  );
+});
+
 test('candidate versions remain outside the installed app ranges', () => {
   assert.equal(candidateVersion('3.4.28-napp.3'), '3.4.29-securityrc.0');
   assert.equal(candidateVersion('3.4.29-securityrc.0'), '3.4.30-securityrc.0');

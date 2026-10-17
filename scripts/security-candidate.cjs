@@ -64,6 +64,11 @@ function main() {
   const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   assert.equal(pkg.name, packageName);
   assert.equal(pkg.publishConfig.registry, registry);
+  assert.equal(
+    pkg.gitHead,
+    undefined,
+    'Do not retain a historical gitHead in source'
+  );
   assert.equal(pkg.repository.url, `git+https://github.com/${repository}.git`);
 
   if (mode === 'plan') {
