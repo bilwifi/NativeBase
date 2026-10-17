@@ -24,7 +24,7 @@
     "build:web": "rollup --config",
     "bundle:analysis": "visualize-bundle",
     "commit-test": "yarn prepare && cd example && yarn test && cd ..",
-    "test:security": "node --test scripts/theme-properties-security.test.cjs scripts/input-typography.test.cjs",
+    "test:security": "node --test scripts/theme-properties-security.test.cjs scripts/input-typography.test.cjs scripts/security-candidate.test.cjs",
     "build:library": "bob build",
     "release:securityrc": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\"",
     "release:securityrc:check": "release-it patch --preRelease=securityrc --npm.tag=security-rc --git.requireBranch=master --git.requireCommits=true --github.releaseNotes=\"cat docs/security-rc-release-notes.md\" --dry-run --ci"
